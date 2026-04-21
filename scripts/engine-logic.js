@@ -21,10 +21,17 @@ export class EngineLogic {
     return new Map((collection ?? []).map(entry => [entry.id, entry]));
   }
 
-  static _getSpeciesDeathRiskMin(settler) {
+  static _getSpeciesConfig(settler) {
     const speciesKey = settler?.species ?? "human";
-    const speciesCfg = SETTLER_SPECIES[speciesKey] ?? SETTLER_SPECIES.human;
-    return speciesCfg.deathRiskMin;
+    return SETTLER_SPECIES[speciesKey] ?? SETTLER_SPECIES.human;
+  }
+
+  static _getSpeciesElderMin(settler) {
+    return EngineLogic._getSpeciesConfig(settler).elderMin;
+  }
+
+  static _getSpeciesDeathRiskMin(settler) {
+    return EngineLogic._getSpeciesConfig(settler).deathRiskMin;
   }
 
   // ---------------------------------------------------------------------------
@@ -39,7 +46,11 @@ export class EngineLogic {
   static getEffectiveStatus(settler) {
     if (settler.status === "sick") return "sick";
     if (settler.age < AGE_THRESHOLDS.childMax) return "child";
-    if (settler.age >= AGE_THRESHOLDS.elderMin) return "elder";
+
+    // Elben (und ggf. weitere Spezies mit elderMin=null) werden niemals Greis.
+    const elderMin = EngineLogic._getSpeciesElderMin(settler);
+    if (Number.isFinite(elderMin) && settler.age >= elderMin) return "elder";
+
     return "active";
   }
 
@@ -50,6 +61,23 @@ export class EngineLogic {
    */
   static getEfficiency(settler) {
     const status = EngineLogic.getEffectiveStatus(settler);
+    if (status === "elder") {
+      const elderMin = EngineLogic._getSpeciesElderMin(settler);
+      const deathRiskMin = EngineLogic._getSpeciesDeathRiskMin(settler);
+
+      // Startet bei 50 % und fällt dann mit zunehmendem Alter deutlich weiter ab.
+      if (!Number.isFinite(elderMin)) return 1.0;
+
+      const yearsAsElder = Math.max(0, settler.age - elderMin);
+      let efficiency = 0.5 - (yearsAsElder * 0.02);
+
+      if (Number.isFinite(deathRiskMin) && settler.age > deathRiskMin) {
+        efficiency -= (settler.age - deathRiskMin) * 0.01;
+      }
+
+      return Math.max(0.05, efficiency);
+    }
+
     return WORK_EFFICIENCY[status] ?? 1.0;
   }
 
@@ -276,9 +304,8 @@ export class EngineLogic {
     // Status automatisch aktualisieren (außer "sick" – das bleibt manuell)
     aged = aged.map(s => {
       if (s.status === "sick") return s;
-      if (s.age < AGE_THRESHOLDS.childMax)  return { ...s, status: "child" };
-      if (s.age >= AGE_THRESHOLDS.elderMin) return { ...s, status: "elder" };
-      return { ...s, status: "active" };
+      const effectiveStatus = EngineLogic.getEffectiveStatus(s);
+      return { ...s, status: effectiveStatus };
     });
 
     // Sterbe-Checks für Siedler oberhalb des Risiko-Alters

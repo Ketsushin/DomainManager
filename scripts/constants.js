@@ -38,15 +38,16 @@ export const PROFESSIONS = {
 
 // ---------------------------------------------------------------------------
 // Spezies-Regeln
+// elderMin:    Ab diesem Alter gilt der Siedler als Greis (null = nie Greis)
 // deathRiskMin: Ab diesem Alter greifen Sterblichkeitswürfe beim Jahreswechsel
 // null bedeutet praktisch keine altersbedingte Sterblichkeit
 // ---------------------------------------------------------------------------
 export const SETTLER_SPECIES = {
-  human:    { label: "Mensch", deathRiskMin: 60 },
-  elf:      { label: "Elb", deathRiskMin: null },
-  dwarf:    { label: "Zwerg", deathRiskMin: 240 },
-  hobbit:   { label: "Halbling", deathRiskMin: 80 },
-  dunedain: { label: "Dunedain", deathRiskMin: 120 }
+  human:    { label: "Mensch", elderMin: 60, deathRiskMin: 60 },
+  elf:      { label: "Elb", elderMin: null, deathRiskMin: null },
+  dwarf:    { label: "Zwerg", elderMin: 260, deathRiskMin: 240 },
+  hobbit:   { label: "Halbling", elderMin: 120, deathRiskMin: 80 },
+  dunedain: { label: "Dunedain", elderMin: 140, deathRiskMin: 120 }
 };
 
 // ---------------------------------------------------------------------------
