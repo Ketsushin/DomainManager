@@ -28,6 +28,7 @@
         <tr>
           <th>Name</th>
           <th>Alter</th>
+          <th>Spezies</th>
           <th>Geschlecht</th>
           <th>Status</th>
           <th>Beruf</th>
@@ -41,6 +42,7 @@
         <tr class="dm-settler-row dm-settler--{{effectiveStatus}}">
           <td class="dm-settler-name">{{name}}</td>
           <td>{{age}}</td>
+          <td>{{speciesLabel}}</td>
           <td>{{genderLabel}}</td>
           <td>
             <span class="dm-status-badge dm-status--{{effectiveStatus}}">
@@ -86,7 +88,7 @@
         </tr>
         {{#if notes}}
         <tr class="dm-settler-notes-row">
-          <td colspan="{{#if ../isGM}}8{{else}}7{{/if}}" class="dm-settler-notes">
+          <td colspan="{{#if ../isGM}}9{{else}}8{{/if}}" class="dm-settler-notes">
             <i class="fas fa-comment-alt"></i> {{notes}}
           </td>
         </tr>
@@ -117,8 +119,9 @@
         arbeiten mit 50 % Effizienz.
       </p>
       <p>
-        <strong>Sterblichkeit:</strong> Ab dem 60. Lebensjahr werden beim
-        Jahresabschluss automatisch Überlebenswürfe durchgeführt.
+        <strong>Sterblichkeit:</strong> Überlebenswürfe starten je nach Spezies
+        beim Jahresabschluss: Menschen ab 60, Halblinge ab 80,
+        Dunedain ab 120, Zwerge ab 240, Elben ohne Alterslimit.
         Das Heilerhaus senkt das Risiko um 5 %.
       </p>
       <table class="dm-table dm-table--compact">

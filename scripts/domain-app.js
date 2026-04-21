@@ -5,7 +5,7 @@
 
 import { DomainData } from "./domain-data.js";
 import { EngineLogic } from "./engine-logic.js";
-import { PROFESSIONS, SEASONS, BUILDING_TYPES } from "./constants.js";
+import { PROFESSIONS, SEASONS, BUILDING_TYPES, SETTLER_SPECIES } from "./constants.js";
 
 export class DomainApp extends FormApplication {
 
@@ -33,7 +33,11 @@ export class DomainApp extends FormApplication {
   }
 
   static _genderLabel(gender) {
-    return { male: "Männlich", female: "Weiblich", other: "Divers" }[gender] ?? gender;
+    return { male: "Männlich", female: "Weiblich" }[gender] ?? "Unbekannt";
+  }
+
+  static _speciesLabel(species) {
+    return SETTLER_SPECIES[species]?.label ?? SETTLER_SPECIES.human.label;
   }
 
   static _buildingStatusLabel(status) {
@@ -84,10 +88,12 @@ export class DomainApp extends FormApplication {
       const house = s.houseId ? houses.find(h => h.id === s.houseId) : null;
       return {
         ...s,
+        species: s.species ?? "human",
         effectiveStatus: EngineLogic.getEffectiveStatus(s),
         efficiencyPct: Math.round(EngineLogic.getEfficiency(s) * 100),
         professionLabel: PROFESSIONS[s.profession]?.label ?? "Keine",
         statusLabel: DomainApp._statusLabel(EngineLogic.getEffectiveStatus(s)),
+        speciesLabel: DomainApp._speciesLabel(s.species ?? "human"),
         genderLabel: DomainApp._genderLabel(s.gender),
         partnerName: partner?.name ?? "-",
         houseLabel: house ? `${house.label} (${house.used}/${house.slots})` : "-"
@@ -158,6 +164,11 @@ export class DomainApp extends FormApplication {
       goldProd: val.goldProd
     }));
 
+    const species = Object.entries(SETTLER_SPECIES).map(([key, val]) => ({
+      key,
+      label: val.label
+    }));
+
     const buildingTypes = Object.entries(BUILDING_TYPES).map(([key, val]) => ({
       key,
       label: val.label,
@@ -198,6 +209,7 @@ export class DomainApp extends FormApplication {
       weeklyNetFood: netFood,
       netFoodPositive: netFood >= 0,
       professions,
+      species,
       buildingTypes,
       log: (state.log ?? []).slice(0, 25),
       isGM: game.user.isGM,
@@ -306,6 +318,10 @@ export class DomainApp extends FormApplication {
       .map(([key, val]) => `<option value="${key}" ${settler?.profession === key ? "selected" : ""}>${val.label}</option>`)
       .join("");
 
+    const speciesOptions = Object.entries(SETTLER_SPECIES)
+      .map(([key, val]) => `<option value="${key}" ${(settler?.species ?? "human") === key ? "selected" : ""}>${val.label}</option>`)
+      .join("");
+
     const partnerOptions = ["<option value=''>Kein Partner</option>"]
       .concat(settlers
         .filter(s => !settler || s.id !== settler.id)
@@ -320,13 +336,13 @@ export class DomainApp extends FormApplication {
     const content = `
       <form class="dm-dialog-form">
         <div class="form-group"><label>Name</label><input type="text" name="name" value="${settler?.name ?? ""}" /></div>
-        <div class="form-group"><label>Alter</label><input type="number" name="age" value="${settler?.age ?? 25}" min="0" max="120" /></div>
+        <div class="form-group"><label>Alter</label><input type="number" name="age" value="${settler?.age ?? 25}" min="0" /></div>
+        <div class="form-group"><label>Spezies</label><select name="species">${speciesOptions}</select></div>
         <div class="form-group">
           <label>Geschlecht</label>
           <select name="gender">
             <option value="male" ${settler?.gender === "male" ? "selected" : ""}>Männlich</option>
             <option value="female" ${settler?.gender === "female" ? "selected" : ""}>Weiblich</option>
-            <option value="other" ${settler?.gender === "other" ? "selected" : ""}>Divers</option>
           </select>
         </div>
         <div class="form-group">
@@ -354,7 +370,9 @@ export class DomainApp extends FormApplication {
             const data = fd.object;
 
             data.name = String(data.name ?? "").trim() || "Unbekannt";
-            data.age = Math.max(0, Math.min(120, parseInt(data.age) || 0));
+            data.age = Math.max(0, parseInt(data.age) || 0);
+            if (!SETTLER_SPECIES[data.species]) data.species = "human";
+            if (data.gender !== "male" && data.gender !== "female") data.gender = "male";
             data.partnerId = data.partnerId || null;
             data.houseId = data.houseId || null;
 

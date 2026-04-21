@@ -37,6 +37,19 @@ export const PROFESSIONS = {
 };
 
 // ---------------------------------------------------------------------------
+// Spezies-Regeln
+// deathRiskMin: Ab diesem Alter greifen Sterblichkeitswürfe beim Jahreswechsel
+// null bedeutet praktisch keine altersbedingte Sterblichkeit
+// ---------------------------------------------------------------------------
+export const SETTLER_SPECIES = {
+  human:    { label: "Mensch", deathRiskMin: 60 },
+  elf:      { label: "Elb", deathRiskMin: null },
+  dwarf:    { label: "Zwerg", deathRiskMin: 240 },
+  hobbit:   { label: "Halbling", deathRiskMin: 80 },
+  dunedain: { label: "Dunedain", deathRiskMin: 120 }
+};
+
+// ---------------------------------------------------------------------------
 // Gebäudetypen
 // workerWeeksRequired: Wie viele Arbeiter-Wochen nötig sind
 // cost:               Ressourcenkosten beim Start des Projekts (optional, zur Anzeige)

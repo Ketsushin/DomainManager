@@ -82,6 +82,7 @@ export class DomainData {
         id:         foundry.utils.randomID(),
         name:       "Unbekannt",
         age:        25,
+        species:    "human",
         gender:     "male",
         status:     "active",
         profession: "none",

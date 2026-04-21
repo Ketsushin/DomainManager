@@ -10,6 +10,7 @@ import {
   SEASONS,
   BUILDING_TYPES,
   AGE_THRESHOLDS,
+  SETTLER_SPECIES,
   WORK_EFFICIENCY,
   FOOD_CONSUMPTION_PER_SETTLER
 } from "./constants.js";
@@ -18,6 +19,12 @@ export class EngineLogic {
 
   static _toMapById(collection) {
     return new Map((collection ?? []).map(entry => [entry.id, entry]));
+  }
+
+  static _getSpeciesDeathRiskMin(settler) {
+    const speciesKey = settler?.species ?? "human";
+    const speciesCfg = SETTLER_SPECIES[speciesKey] ?? SETTLER_SPECIES.human;
+    return speciesCfg.deathRiskMin;
   }
 
   // ---------------------------------------------------------------------------
@@ -277,8 +284,9 @@ export class EngineLogic {
     // Sterbe-Checks für Siedler oberhalb des Risiko-Alters
     const surviving = [];
     for (const settler of aged) {
-      if (settler.age > AGE_THRESHOLDS.deathRiskMin) {
-        const extraRisk  = (settler.age - AGE_THRESHOLDS.deathRiskMin) * 2;
+      const deathRiskMin = EngineLogic._getSpeciesDeathRiskMin(settler);
+      if (Number.isFinite(deathRiskMin) && settler.age > deathRiskMin) {
+        const extraRisk  = (settler.age - deathRiskMin) * 2;
         const totalChance = Math.min(95, deathChance + extraRisk);
         const roll        = Math.floor(Math.random() * 100) + 1;
 
@@ -336,12 +344,16 @@ export class EngineLogic {
         if (birthRoll > birthChance) continue;
 
         const isFemale = Math.random() < 0.5;
+        const inheritedSpecies = Math.random() < 0.5
+          ? (parentA.species ?? "human")
+          : (parentB.species ?? "human");
         const hasHousing = housingSlots === 0 || newSettlers.length < housingSlots;
         const assignedHouseId = parentA.houseId && hasHousing ? parentA.houseId : null;
         const newborn = {
           id:         foundry.utils.randomID(),
           name:       `Kind von ${parentA.name}`,
           age:        0,
+          species:    inheritedSpecies,
           gender:     isFemale ? "female" : "male",
           status:     "child",
           profession: "none",
