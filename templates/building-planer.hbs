@@ -34,6 +34,12 @@
         <span class="dm-status-badge dm-status--complete">{{statusLabel}}</span>
         {{#if ../isGM}}
         <button type="button"
+                class="dm-btn dm-btn--small btn-rename-building"
+                data-id="{{id}}"
+                title="Umbenennen">
+          <i class="fas fa-pen"></i>
+        </button>
+        <button type="button"
                 class="dm-btn dm-btn--small dm-btn--danger btn-delete-building"
                 data-id="{{id}}"
                 title="Gebäude entfernen">
@@ -89,6 +95,12 @@
         <span class="dm-status-badge dm-status--wip">{{statusLabel}}</span>
         {{#if ../isGM}}
         <button type="button"
+                class="dm-btn dm-btn--small btn-rename-building"
+                data-id="{{id}}"
+                title="Umbenennen">
+          <i class="fas fa-pen"></i>
+        </button>
+        <button type="button"
                 class="dm-btn dm-btn--small dm-btn--danger btn-delete-building"
                 data-id="{{id}}"
                 title="Projekt abbrechen">
@@ -131,6 +143,12 @@
         <span class="dm-status-badge dm-status--planned">{{statusLabel}}</span>
         {{#if ../isGM}}
         <div class="dm-building-actions">
+          <button type="button"
+                  class="dm-btn dm-btn--small btn-rename-building"
+                  data-id="{{id}}"
+                  title="Umbenennen">
+            <i class="fas fa-pen"></i>
+          </button>
           <button type="button"
                   class="dm-btn dm-btn--small dm-btn--primary btn-start-construction"
                   data-id="{{id}}"

@@ -267,6 +267,7 @@
 .dm-btn--danger  { background: var(--dm-danger);    color: #fff; }
 .dm-btn--ghost   { background: transparent; color: var(--dm-text-muted); border: 1px solid var(--dm-border-soft); }
 .dm-btn--small   { padding: 3px 8px; font-size: 0.8em; }
+.btn-rename-building { background: #3a4a6b; color: #b8d4ff; border: 1px solid #5a7ab8; }
 
 .dm-header-actions {
   display: flex;

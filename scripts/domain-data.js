@@ -105,6 +105,8 @@ export class DomainData {
       {
         id:                foundry.utils.randomID(),
         typeKey,
+        customName:        "",              // vom GM frei bearbeitbarer Anzeigename
+        number:            0,               // laufende Nummer unter gleichem Gebäudetyp
         status:            "planned",        // planned | under_construction | complete
         workerWeeksSpent:  0,
         assignedWorkers:   0,

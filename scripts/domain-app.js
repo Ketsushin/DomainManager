@@ -64,9 +64,15 @@ export class DomainApp extends FormApplication {
       const type = BUILDING_TYPES[house.typeKey];
       const slots = type?.householdSlots ?? 0;
       const used = houseUsage.get(house.id) ?? 0;
+      const baseLabel = type?.label ?? house.typeKey;
+      const number = house.number ? ` #${house.number}` : "";
+      const displayLabel = house.customName
+        ? house.customName
+        : `${baseLabel}${number}`;
       return {
         id: house.id,
-        label: type?.label ?? house.typeKey,
+        label: displayLabel,
+        baseLabel,
         slots,
         used,
         free: Math.max(0, slots - used)
@@ -88,6 +94,7 @@ export class DomainApp extends FormApplication {
       };
     });
 
+    const typeCounts = {};
     const buildings = (state.buildings ?? []).map(b => {
       const type = BUILDING_TYPES[b.typeKey] ?? {};
       const required = type.workerWeeksRequired ?? 1;
@@ -110,9 +117,17 @@ export class DomainApp extends FormApplication {
         selected: assignedSettlerIds.includes(s.id)
       }));
 
+      const baseLabel = type.label ?? b.typeKey;
+      typeCounts[b.typeKey] = (typeCounts[b.typeKey] ?? 0) + 1;
+      const number = b.number || typeCounts[b.typeKey];
+      const displayLabel = b.customName
+        ? b.customName
+        : `${baseLabel} #${number}`;
+
       return {
         ...b,
-        typeLabel: type.label ?? b.typeKey,
+        typeLabel: displayLabel,
+        baseTypeLabel: baseLabel,
         description: type.description ?? "",
         workerWeeksRequired: required,
         statusLabel: DomainApp._buildingStatusLabel(b.status),
@@ -208,6 +223,7 @@ export class DomainApp extends FormApplication {
     html.find(".btn-break-pair").on("click", this._onBreakPair.bind(this));
     html.find(".btn-assign-house").on("click", this._onAssignHouse.bind(this));
 
+    html.find(".btn-rename-building").on("click", this._onRenameBuilding.bind(this));
     html.find(".btn-add-building").on("click", this._onAddBuilding.bind(this));
     html.find(".btn-start-construction").on("click", this._onStartConstruction.bind(this));
     html.find(".btn-delete-building").on("click", this._onDeleteBuilding.bind(this));
@@ -298,10 +314,7 @@ export class DomainApp extends FormApplication {
       .join("");
 
     const houseOptions = ["<option value=''>Kein Wohnhaus</option>"]
-      .concat(houses.map(h => {
-        const label = BUILDING_TYPES[h.typeKey]?.label ?? h.typeKey;
-        return `<option value="${h.id}" ${settler?.houseId === h.id ? "selected" : ""}>${label}</option>`;
-      }))
+      .concat(houses.map(h => `<option value="${h.id}" ${settler?.houseId === h.id ? "selected" : ""}>${h.label}</option>`))
       .join("");
 
     const content = `
@@ -393,7 +406,7 @@ export class DomainApp extends FormApplication {
 
     const settlerOptions = adults.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
     const houseOptions = ["<option value=''>Kein Wohnhaus zuweisen</option>"]
-      .concat(houses.map(h => `<option value="${h.id}">${BUILDING_TYPES[h.typeKey]?.label ?? h.typeKey}</option>`))
+      .concat(houses.map(h => `<option value="${h.id}">${h.label}</option>`))
       .join("");
 
     const content = `
@@ -466,7 +479,13 @@ export class DomainApp extends FormApplication {
     });
 
     const houseOptions = ["<option value=''>Kein Wohnhaus</option>"]
-      .concat(houses.map(h => `<option value="${h.id}" ${settler.houseId === h.id ? "selected" : ""}>${BUILDING_TYPES[h.typeKey]?.label ?? h.typeKey}</option>`))
+      .concat(houses.map(h => {
+        const type = BUILDING_TYPES[h.typeKey];
+        const base = type?.label ?? h.typeKey;
+        const num = h.number ? ` #${h.number}` : "";
+        const lbl = h.customName || `${base}${num}`;
+        return `<option value="${h.id}" ${settler.houseId === h.id ? "selected" : ""}>${lbl}</option>`;
+      }))
       .join("");
 
     new Dialog({
@@ -527,6 +546,54 @@ export class DomainApp extends FormApplication {
     this.render(false);
   }
 
+  async _onRenameBuilding(event) {
+    event.preventDefault();
+    const id = event.currentTarget.dataset.id;
+    const state = DomainData.getDomainState();
+    const bldg = state.buildings?.find(b => b.id === id);
+    if (!bldg) return;
+
+    const type = BUILDING_TYPES[bldg.typeKey];
+    const baseLabel = type?.label ?? bldg.typeKey;
+    const number = bldg.number || 1;
+    const currentName = bldg.customName || `${baseLabel} #${number}`;
+
+    new Dialog({
+      title: "Gebäude umbenennen",
+      content: `<form class="dm-dialog-form">
+        <div class="form-group">
+          <label>Anzeigename</label>
+          <input type="text" name="customName" value="${currentName}" placeholder="z.B. Haus der Familie Mayer" style="width:100%" />
+          <small>Leer lassen um Standardname zu verwenden.</small>
+        </div>
+      </form>`,
+      buttons: {
+        save: {
+          icon: "<i class='fas fa-save'></i>",
+          label: "Speichern",
+          callback: async (html) => {
+            const fd = new FormDataExtended(html.find("form")[0]);
+            const newName = String(fd.object.customName ?? "").trim();
+            bldg.customName = newName;
+            await DomainData.saveDomainState(state);
+            this.render(false);
+          }
+        },
+        reset: {
+          icon: "<i class='fas fa-undo'></i>",
+          label: "Standardname",
+          callback: async () => {
+            bldg.customName = "";
+            await DomainData.saveDomainState(state);
+            this.render(false);
+          }
+        },
+        cancel: { label: "Abbrechen" }
+      },
+      default: "save"
+    }).render(true);
+  }
+
   async _onAddBuilding(event) {
     event.preventDefault();
 
@@ -545,7 +612,9 @@ export class DomainApp extends FormApplication {
             const typeKey = html.find("[name='typeKey']").val();
             const state = DomainData.getDomainState();
             state.buildings = state.buildings ?? [];
-            state.buildings.push(DomainData.createBuilding(typeKey));
+            const sameType = (state.buildings ?? []).filter(b => b.typeKey === typeKey);
+            const nextNumber = sameType.length + 1;
+            state.buildings.push(DomainData.createBuilding(typeKey, { number: nextNumber }));
             await DomainData.saveDomainState(state);
             this.render(false);
           }
