@@ -1,0 +1,28 @@
+{
+  "id": "domain-manager",
+  "title": "Domain Manager",
+  "description": "Verwalte deine Domäne in FoundryVTT – Siedler, Ressourcen, Gebäude und manuelle Zeitsteuerung für Pen-&-Paper-Kampagnen.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "11",
+    "verified": "12",
+    "maximum": "12"
+  },
+  "authors": [
+    {
+      "name": "GM",
+      "flags": {}
+    }
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/domain-manager.css"
+  ],
+  "languages": [],
+  "flags": {},
+  "url": "",
+  "manifest": "",
+  "download": ""
+}

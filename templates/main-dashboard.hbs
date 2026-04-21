@@ -1,0 +1,187 @@
+{{!-- main-dashboard.hbs
+     Äußere Hülle des Domain Manager Fensters.
+     Enthält Tab-Navigation und bindet die vier Tab-Inhalte ein.
+--}}
+<form class="domain-manager-form" autocomplete="off">
+
+  {{!-- Tab-Navigation --}}
+  <nav class="domain-tabs tabs" data-group="primary-tabs">
+    <a class="item active" data-tab="dashboard">
+      <i class="fas fa-chart-bar"></i> Übersicht
+    </a>
+    <a class="item" data-tab="settlers">
+      <i class="fas fa-users"></i> Siedler
+      <span class="tab-badge {{#if capacityWarning}}badge-warn{{/if}}">{{settlerCount}}/{{capacity}}</span>
+    </a>
+    <a class="item" data-tab="buildings">
+      <i class="fas fa-building"></i> Gebäude
+    </a>
+    {{#if isGM}}
+    <a class="item" data-tab="gm-settings">
+      <i class="fas fa-cog"></i> GM
+    </a>
+    {{/if}}
+  </nav>
+
+  <div class="tab-body">
+
+    {{!-- ================================================================
+         TAB: DASHBOARD (Übersicht & Zeitsteuerung)
+    ================================================================ --}}
+    <section class="tab active" data-tab="dashboard" data-group="primary-tabs">
+
+      {{!-- Ressourcen-Übersicht --}}
+      <div class="dm-panel">
+        <h2 class="dm-panel-title"><i class="fas fa-warehouse"></i> Ressourcen</h2>
+        <div class="dm-resource-grid">
+          <div class="dm-resource {{#if foodWarning}}dm-resource--warn{{/if}}">
+            <span class="dm-res-icon">🍞</span>
+            <span class="dm-res-value">{{resources.food}}</span>
+            <span class="dm-res-label">Nahrung</span>
+          </div>
+          <div class="dm-resource">
+            <span class="dm-res-icon">🪵</span>
+            <span class="dm-res-value">{{resources.wood}}</span>
+            <span class="dm-res-label">Holz</span>
+          </div>
+          <div class="dm-resource">
+            <span class="dm-res-icon">⛏️</span>
+            <span class="dm-res-value">{{resources.stone}}</span>
+            <span class="dm-res-label">Stein</span>
+          </div>
+          <div class="dm-resource">
+            <span class="dm-res-icon">💰</span>
+            <span class="dm-res-value">{{resources.gold}}</span>
+            <span class="dm-res-label">Gold</span>
+          </div>
+        </div>
+        {{#if foodWarning}}
+        <p class="dm-warning"><i class="fas fa-exclamation-triangle"></i> Nahrungsvorräte kritisch niedrig!</p>
+        {{/if}}
+        {{#if capacityWarning}}
+        <p class="dm-warning"><i class="fas fa-exclamation-triangle"></i> Versorgungslimit erreicht – kein Bevölkerungswachstum möglich!</p>
+        {{/if}}
+      </div>
+
+      {{!-- Produktionsvorschau --}}
+      <div class="dm-panel">
+        <h2 class="dm-panel-title"><i class="fas fa-seedling"></i> Wochenproduktion (Vorschau)</h2>
+        <div class="dm-production-grid">
+          <div class="dm-prod-item">
+            <span>🍞 Nahrung produziert</span>
+            <span>+{{weeklyProduction.food}}</span>
+          </div>
+          <div class="dm-prod-item">
+            <span>🍽️ Nahrung verbraucht</span>
+            <span>−{{weeklyConsumption}}</span>
+          </div>
+          <div class="dm-prod-item {{#unless netFoodPositive}}dm-prod-item--negative{{/unless}}">
+            <span><strong>Netto-Nahrung</strong></span>
+            <span><strong>{{#if netFoodPositive}}+{{/if}}{{weeklyNetFood}}</strong></span>
+          </div>
+          <div class="dm-prod-item">
+            <span>🪵 Holz</span>
+            <span>+{{weeklyProduction.wood}}</span>
+          </div>
+          <div class="dm-prod-item">
+            <span>⛏️ Stein</span>
+            <span>+{{weeklyProduction.stone}}</span>
+          </div>
+          <div class="dm-prod-item">
+            <span>💰 Gold</span>
+            <span>+{{weeklyProduction.gold}}</span>
+          </div>
+        </div>
+      </div>
+
+      {{!-- Zeitsteuerung --}}
+      {{#if isGM}}
+      <div class="dm-panel dm-time-engine">
+        <h2 class="dm-panel-title"><i class="fas fa-hourglass-half"></i> The Time Engine</h2>
+
+        <div class="dm-time-row">
+          <div class="dm-time-info">
+            <span class="dm-time-label">Aktuell:</span>
+            <span class="dm-time-value">Woche {{week}} &nbsp;|&nbsp; Jahr {{year}} &nbsp;|&nbsp; {{seasonLabel}}</span>
+          </div>
+          <div class="dm-time-info">
+            <span class="dm-time-label">Siedler:</span>
+            <span class="dm-time-value">{{settlerCount}} / {{capacity}}</span>
+          </div>
+          <div class="dm-time-info">
+            <span class="dm-time-label">Weltspannung:</span>
+            <span class="dm-time-value">{{worldTension}} %</span>
+          </div>
+        </div>
+
+        <div class="dm-season-row">
+          <label for="dm-season-select">Jahreszeit:</label>
+          <select id="dm-season-select" class="season-select">
+            {{#each seasons}}
+            <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+        </div>
+
+        <div class="dm-button-row">
+          <button type="button" class="dm-btn dm-btn--primary btn-week-end">
+            <i class="fas fa-calendar-week"></i> Woche abschließen
+          </button>
+          <button type="button" class="dm-btn dm-btn--danger btn-year-end">
+            <i class="fas fa-calendar-alt"></i> Jahr abschließen
+          </button>
+        </div>
+      </div>
+      {{/if}}
+
+      {{!-- Ereignislog --}}
+      <div class="dm-panel">
+        <h2 class="dm-panel-title">
+          <i class="fas fa-scroll"></i> Ereignislog
+          {{#if isGM}}
+          <button type="button" class="dm-btn dm-btn--small dm-btn--ghost btn-clear-log" title="Log leeren">
+            <i class="fas fa-trash"></i>
+          </button>
+          {{/if}}
+        </h2>
+        <div class="dm-log">
+          {{#if log.length}}
+          {{#each log}}
+          <div class="dm-log-entry">
+            <span class="dm-log-meta">W{{week}}/J{{year}}</span>
+            <span class="dm-log-msg">{{message}}</span>
+          </div>
+          {{/each}}
+          {{else}}
+          <p class="dm-empty">Noch keine Ereignisse aufgezeichnet.</p>
+          {{/if}}
+        </div>
+      </div>
+
+    </section>
+
+    {{!-- ================================================================
+         TAB: SIEDLER
+    ================================================================ --}}
+    <section class="tab" data-tab="settlers" data-group="primary-tabs">
+      {{> "modules/domain-manager/templates/settler-directory.hbs"}}
+    </section>
+
+    {{!-- ================================================================
+         TAB: GEBÄUDE
+    ================================================================ --}}
+    <section class="tab" data-tab="buildings" data-group="primary-tabs">
+      {{> "modules/domain-manager/templates/building-planer.hbs"}}
+    </section>
+
+    {{!-- ================================================================
+         TAB: GM-EINSTELLUNGEN
+    ================================================================ --}}
+    {{#if isGM}}
+    <section class="tab" data-tab="gm-settings" data-group="primary-tabs">
+      {{> "modules/domain-manager/templates/gm-settings.hbs"}}
+    </section>
+    {{/if}}
+
+  </div>{{!-- /.tab-body --}}
+</form>

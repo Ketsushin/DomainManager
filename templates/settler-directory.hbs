@@ -1,0 +1,118 @@
+{{!-- settler-directory.hbs
+     Liste aller Siedler mit Inline-Status, Beruf und GM-Aktionsbuttons.
+--}}
+<div class="dm-panel dm-settlers">
+
+  <div class="dm-panel-header">
+    <h2 class="dm-panel-title"><i class="fas fa-users"></i> Siedler-Verzeichnis</h2>
+    {{#if isGM}}
+    <button type="button" class="dm-btn dm-btn--primary btn-add-settler">
+      <i class="fas fa-user-plus"></i> Siedler hinzufügen
+    </button>
+    {{/if}}
+  </div>
+
+  <p class="dm-settler-summary">
+    <strong>{{settlerCount}}</strong> von maximal <strong>{{capacity}}</strong> Plätzen belegt.
+  </p>
+
+  {{#if settlers.length}}
+  <div class="dm-table-wrapper">
+    <table class="dm-table dm-settlers-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Alter</th>
+          <th>Geschlecht</th>
+          <th>Status</th>
+          <th>Beruf</th>
+          <th>Effizienz</th>
+          {{#if isGM}}<th>Aktionen</th>{{/if}}
+        </tr>
+      </thead>
+      <tbody>
+        {{#each settlers}}
+        <tr class="dm-settler-row dm-settler--{{effectiveStatus}}">
+          <td class="dm-settler-name">{{name}}</td>
+          <td>{{age}}</td>
+          <td>{{genderLabel}}</td>
+          <td>
+            <span class="dm-status-badge dm-status--{{effectiveStatus}}">
+              {{statusLabel}}
+            </span>
+          </td>
+          <td>{{professionLabel}}</td>
+          <td>
+            <span class="dm-efficiency" title="Arbeitseffizienz">{{efficiencyPct}} %</span>
+          </td>
+          {{#if ../isGM}}
+          <td class="dm-actions">
+            <button type="button"
+                    class="dm-btn dm-btn--small dm-btn--ghost btn-edit-settler"
+                    data-id="{{id}}"
+                    title="Bearbeiten">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button type="button"
+                    class="dm-btn dm-btn--small dm-btn--danger btn-delete-settler"
+                    data-id="{{id}}"
+                    title="Entfernen">
+              <i class="fas fa-skull"></i>
+            </button>
+          </td>
+          {{/if}}
+        </tr>
+        {{#if notes}}
+        <tr class="dm-settler-notes-row">
+          <td colspan="{{#if ../isGM}}7{{else}}6{{/if}}" class="dm-settler-notes">
+            <i class="fas fa-comment-alt"></i> {{notes}}
+          </td>
+        </tr>
+        {{/if}}
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="dm-empty-state">
+    <i class="fas fa-user-slash"></i>
+    <p>Noch keine Siedler eingetragen.</p>
+    {{#if isGM}}
+    <button type="button" class="dm-btn dm-btn--primary btn-add-settler">
+      <i class="fas fa-user-plus"></i> Ersten Siedler hinzufügen
+    </button>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  {{!-- Berufs-Legende --}}
+  <details class="dm-legend">
+    <summary><i class="fas fa-info-circle"></i> Berufs-Legende & Altersregeln</summary>
+    <div class="dm-legend-content">
+      <p>
+        <strong>Kinder</strong> (unter 12 Jahre) und <strong>Kranke</strong>
+        leisten keinen Arbeitsertrag. <strong>Greise</strong> (ab 70 Jahre)
+        arbeiten mit 50 % Effizienz.
+      </p>
+      <p>
+        <strong>Sterblichkeit:</strong> Ab dem 60. Lebensjahr werden beim
+        Jahresabschluss automatisch Überlebenswürfe durchgeführt.
+        Das Heilerhaus senkt das Risiko um 5 %.
+      </p>
+      <table class="dm-table dm-table--compact">
+        <thead>
+          <tr><th>Beruf</th><th>🍞</th><th>🪵</th><th>⛏️</th><th>💰</th></tr>
+        </thead>
+        <tbody>
+          {{#each professions}}
+          <tr>
+            <td>{{label}}</td>
+            <td>–</td><td>–</td><td>–</td><td>–</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+</div>

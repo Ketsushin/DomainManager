@@ -1,0 +1,177 @@
+{{!-- building-planer.hbs
+     Übersicht aller Bauprojekte mit Fortschrittsbalken und Arbeiter-Zuweisung.
+--}}
+<div class="dm-panel dm-buildings">
+
+  <div class="dm-panel-header">
+    <h2 class="dm-panel-title"><i class="fas fa-hammer"></i> Bauplanung & Infrastruktur</h2>
+    {{#if isGM}}
+    <button type="button" class="dm-btn dm-btn--primary btn-add-building">
+      <i class="fas fa-plus"></i> Projekt hinzufügen
+    </button>
+    {{/if}}
+  </div>
+
+  <p class="dm-hint">
+    Bauprojekte werden durch zugewiesene Arbeiter-Wochen (AW) vorangetrieben.
+    Jeder zugewiesene Siedler liefert 1 AW pro Wochenabschluss.
+    Gebäude werden erst beim Erreichen der benötigten AW aktiv.
+  </p>
+
+  {{#if buildings.length}}
+  <div class="dm-buildings-list">
+
+    {{!-- Fertige Gebäude --}}
+    {{#each buildings}}
+    {{#if isComplete}}
+    <div class="dm-building-card dm-building--complete">
+      <div class="dm-building-header">
+        <span class="dm-building-icon">🏛️</span>
+        <div class="dm-building-info">
+          <strong class="dm-building-name">{{typeLabel}}</strong>
+          <span class="dm-building-desc">{{description}}</span>
+        </div>
+        <span class="dm-status-badge dm-status--complete">{{statusLabel}}</span>
+        {{#if ../isGM}}
+        <button type="button"
+                class="dm-btn dm-btn--small dm-btn--danger btn-delete-building"
+                data-id="{{id}}"
+                title="Gebäude entfernen">
+          <i class="fas fa-trash"></i>
+        </button>
+        {{/if}}
+      </div>
+      <div class="dm-building-progress">
+        <div class="dm-progress-bar">
+          <div class="dm-progress-fill dm-progress--complete" style="width: 100%;"></div>
+        </div>
+        <span class="dm-progress-label">Fertiggestellt</span>
+      </div>
+    </div>
+    {{/if}}
+    {{/each}}
+
+    {{!-- Gebäude im Bau --}}
+    {{#each buildings}}
+    {{#if isUnderConstruction}}
+    <div class="dm-building-card dm-building--wip">
+      <div class="dm-building-header">
+        <span class="dm-building-icon">🔨</span>
+        <div class="dm-building-info">
+          <strong class="dm-building-name">{{typeLabel}}</strong>
+          <span class="dm-building-desc">{{description}}</span>
+        </div>
+        <span class="dm-status-badge dm-status--wip">{{statusLabel}}</span>
+        {{#if ../isGM}}
+        <button type="button"
+                class="dm-btn dm-btn--small dm-btn--danger btn-delete-building"
+                data-id="{{id}}"
+                title="Projekt abbrechen">
+          <i class="fas fa-times"></i>
+        </button>
+        {{/if}}
+      </div>
+      <div class="dm-building-progress">
+        <div class="dm-progress-bar">
+          <div class="dm-progress-fill dm-progress--wip" style="width: {{progress}}%;"></div>
+        </div>
+        <span class="dm-progress-label">{{workerWeeksSpent}} / {{workerWeeksRequired}} AW ({{progress}} %)</span>
+      </div>
+      {{#if ../isGM}}
+      <div class="dm-building-workers">
+        <label for="workers-{{id}}">Zugewiesene Arbeiter diese Woche:</label>
+        <input type="number"
+               id="workers-{{id}}"
+               class="building-workers"
+               data-id="{{id}}"
+               value="{{assignedWorkers}}"
+               min="0"
+               max="20" />
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+    {{/each}}
+
+    {{!-- Geplante Gebäude --}}
+    {{#each buildings}}
+    {{#if isPlanned}}
+    <div class="dm-building-card dm-building--planned">
+      <div class="dm-building-header">
+        <span class="dm-building-icon">📋</span>
+        <div class="dm-building-info">
+          <strong class="dm-building-name">{{typeLabel}}</strong>
+          <span class="dm-building-desc">{{description}}</span>
+        </div>
+        <span class="dm-status-badge dm-status--planned">{{statusLabel}}</span>
+        {{#if ../isGM}}
+        <div class="dm-building-actions">
+          <button type="button"
+                  class="dm-btn dm-btn--small dm-btn--primary btn-start-construction"
+                  data-id="{{id}}"
+                  title="Bau starten">
+            <i class="fas fa-play"></i> Bau starten
+          </button>
+          <button type="button"
+                  class="dm-btn dm-btn--small dm-btn--danger btn-delete-building"
+                  data-id="{{id}}"
+                  title="Plan verwerfen">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+        {{/if}}
+      </div>
+      <div class="dm-building-costs">
+        Benötigt: <strong>{{workerWeeksRequired}} AW</strong>
+      </div>
+    </div>
+    {{/if}}
+    {{/each}}
+
+  </div>
+  {{else}}
+  <div class="dm-empty-state">
+    <i class="fas fa-city"></i>
+    <p>Noch keine Bauprojekte angelegt.</p>
+    {{#if isGM}}
+    <button type="button" class="dm-btn dm-btn--primary btn-add-building">
+      <i class="fas fa-plus"></i> Erstes Projekt planen
+    </button>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  {{!-- Gebäude-Typ-Referenz --}}
+  <details class="dm-legend">
+    <summary><i class="fas fa-book"></i> Alle Gebäudetypen (Referenz)</summary>
+    <div class="dm-legend-content">
+      <table class="dm-table dm-table--compact">
+        <thead>
+          <tr>
+            <th>Gebäude</th>
+            <th>AW</th>
+            <th>Kapazität</th>
+            <th>🍞</th>
+            <th>🪵</th>
+            <th>⛏️</th>
+            <th>💰</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each buildingTypes}}
+          <tr>
+            <td><strong>{{label}}</strong><br><small>{{description}}</small></td>
+            <td>{{workerWeeksRequired}}</td>
+            <td>–</td>
+            <td>–</td>
+            <td>–</td>
+            <td>–</td>
+            <td>–</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+</div>

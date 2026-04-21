@@ -1,0 +1,160 @@
+{{!-- gm-settings.hbs
+     Händische Overrides für den GM: Weltspannung, Sterblichkeit, Kapazität, Ressourcen.
+--}}
+<div class="dm-panel dm-gm-settings">
+
+  <h2 class="dm-panel-title"><i class="fas fa-sliders-h"></i> GM-Einstellungen & Overrides</h2>
+
+  <p class="dm-hint">
+    Hier kannst du globale Regelwerte jederzeit anpassen.
+    Änderungen greifen sofort beim nächsten Wellen- oder Jahres-Tick.
+  </p>
+
+  {{!-- Weltparameter --}}
+  <fieldset class="dm-fieldset">
+    <legend>Weltparameter</legend>
+
+    <div class="form-group">
+      <label for="dm-worldTension">
+        Weltspannung (%)
+        <span class="dm-hint-inline">– Beeinflusst Überfall-Wahrscheinlichkeit (aktuell: narrativ).</span>
+      </label>
+      <div class="dm-input-row">
+        <input type="range"
+               id="dm-worldTension-range"
+               name="worldTension"
+               min="0" max="100"
+               value="{{worldTension}}"
+               oninput="this.nextElementSibling.value=this.value" />
+        <input type="number"
+               id="dm-worldTension"
+               name="worldTension"
+               min="0" max="100"
+               value="{{worldTension}}"
+               oninput="this.previousElementSibling.value=this.value" />
+        <span class="dm-unit">%</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="dm-deathDifficulty">
+        Basis-Sterbewahrscheinlichkeit (%)
+        <span class="dm-hint-inline">
+          – Chance pro Jahr, die ein Siedler über 60 stirbt.
+          Steigt um 2 % pro weiteres Lebensjahr. Heilerhaus –5 %.
+        </span>
+      </label>
+      <div class="dm-input-row">
+        <input type="range"
+               id="dm-deathDifficulty-range"
+               name="deathDifficulty"
+               min="0" max="95"
+               value="{{deathDifficulty}}"
+               oninput="this.nextElementSibling.value=this.value" />
+        <input type="number"
+               id="dm-deathDifficulty"
+               name="deathDifficulty"
+               min="0" max="95"
+               value="{{deathDifficulty}}"
+               oninput="this.previousElementSibling.value=this.value" />
+        <span class="dm-unit">%</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="dm-baseCapacity">
+        Grundkapazität (vor Gebäuden)
+        <span class="dm-hint-inline">– Wie viele Siedler die Basis ohne Infrastruktur versorgen kann.</span>
+      </label>
+      <input type="number"
+             id="dm-baseCapacity"
+             name="baseCapacity"
+             min="1" max="500"
+             value="{{baseCapacity}}" />
+    </div>
+
+    <button type="button" class="dm-btn dm-btn--primary btn-save-gm-settings">
+      <i class="fas fa-save"></i> Weltparameter speichern
+    </button>
+  </fieldset>
+
+  {{!-- Ressourcen direkt setzen --}}
+  <fieldset class="dm-fieldset">
+    <legend>Ressourcen manuell setzen</legend>
+
+    <p class="dm-hint">
+      Nutze dies für Story-Ereignisse (z.B. Plünderung, Handelserfolg)
+      oder um den Startzustand der Kampagne einzurichten.
+    </p>
+
+    <div class="dm-resource-inputs">
+      <div class="form-group">
+        <label for="dm-res-food">🍞 Nahrung</label>
+        <input type="number" id="dm-res-food" name="res-food"
+               min="0" value="{{resources.food}}" />
+      </div>
+      <div class="form-group">
+        <label for="dm-res-wood">🪵 Holz</label>
+        <input type="number" id="dm-res-wood" name="res-wood"
+               min="0" value="{{resources.wood}}" />
+      </div>
+      <div class="form-group">
+        <label for="dm-res-stone">⛏️ Stein</label>
+        <input type="number" id="dm-res-stone" name="res-stone"
+               min="0" value="{{resources.stone}}" />
+      </div>
+      <div class="form-group">
+        <label for="dm-res-gold">💰 Gold</label>
+        <input type="number" id="dm-res-gold" name="res-gold"
+               min="0" value="{{resources.gold}}" />
+      </div>
+    </div>
+
+    <button type="button" class="dm-btn dm-btn--primary btn-set-resources">
+      <i class="fas fa-coins"></i> Ressourcen überschreiben
+    </button>
+  </fieldset>
+
+  {{!-- Aktuelle Werte / Status --}}
+  <fieldset class="dm-fieldset">
+    <legend>Aktueller Zustand</legend>
+    <div class="dm-status-grid">
+      <div class="dm-status-item">
+        <span class="dm-status-key">Woche</span>
+        <span class="dm-status-val">{{week}}</span>
+      </div>
+      <div class="dm-status-item">
+        <span class="dm-status-key">Jahr</span>
+        <span class="dm-status-val">{{year}}</span>
+      </div>
+      <div class="dm-status-item">
+        <span class="dm-status-key">Jahreszeit</span>
+        <span class="dm-status-val">{{seasonLabel}}</span>
+      </div>
+      <div class="dm-status-item">
+        <span class="dm-status-key">Siedler</span>
+        <span class="dm-status-val">{{settlerCount}} / {{capacity}}</span>
+      </div>
+      <div class="dm-status-item">
+        <span class="dm-status-key">Weltspannung</span>
+        <span class="dm-status-val">{{worldTension}} %</span>
+      </div>
+      <div class="dm-status-item">
+        <span class="dm-status-key">Sterberisiko (Basis)</span>
+        <span class="dm-status-val">{{deathDifficulty}} %</span>
+      </div>
+    </div>
+  </fieldset>
+
+  {{!-- Gefahren-Zone --}}
+  <fieldset class="dm-fieldset dm-fieldset--danger">
+    <legend><i class="fas fa-skull-crossbones"></i> Gefahren-Zone</legend>
+    <p class="dm-hint">
+      Diese Aktionen können nicht rückgängig gemacht werden.
+    </p>
+    <button type="button" class="dm-btn dm-btn--danger btn-clear-log">
+      <i class="fas fa-eraser"></i> Ereignislog leeren
+    </button>
+  </fieldset>
+
+</div>
