@@ -5,7 +5,7 @@
  * sofort persistent in der Datenbank landen.
  */
 
-import { BASE_CAPACITY, DEFAULT_DEATH_DIFFICULTY } from "./constants.js";
+import { BASE_CAPACITY, DEFAULT_DEATH_DIFFICULTY, SETTLER_SPECIES } from "./constants.js";
 
 const SETTING_DOMAIN    = "domainState";
 const SETTING_SETTLERS  = "settlers";
@@ -57,7 +57,16 @@ export class DomainData {
 
   static getSettlers() {
     try {
-      return game.settings.get("domain-manager", SETTING_SETTLERS) ?? [];
+      const settlers = game.settings.get("domain-manager", SETTING_SETTLERS) ?? [];
+      return settlers.map(settler => {
+        const species = SETTLER_SPECIES[settler?.species] ? settler.species : "human";
+        const gender = settler?.gender === "female" ? "female" : "male";
+        return {
+          ...settler,
+          species,
+          gender
+        };
+      });
     } catch {
       return [];
     }
