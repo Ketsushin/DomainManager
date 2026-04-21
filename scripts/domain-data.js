@@ -85,6 +85,8 @@ export class DomainData {
         gender:     "male",
         status:     "active",
         profession: "none",
+        partnerId:  null,
+        houseId:    null,
         notes:      ""
       },
       overrides,
@@ -105,7 +107,8 @@ export class DomainData {
         typeKey,
         status:            "planned",        // planned | under_construction | complete
         workerWeeksSpent:  0,
-        assignedWorkers:   0
+        assignedWorkers:   0,
+        assignedSettlerIds: []
       },
       overrides,
       { inplace: false }

@@ -23,7 +23,13 @@ export const PROFESSIONS = {
   farmer:     { label: "Bauer",               foodProd: 3, woodProd: 0, stoneProd: 0, goldProd: 0 },
   hunter:     { label: "Jäger",               foodProd: 2, woodProd: 0, stoneProd: 0, goldProd: 0 },
   lumberjack: { label: "Holzfäller",          foodProd: 0, woodProd: 2, stoneProd: 0, goldProd: 0 },
+  carpenter:  { label: "Zimmermann",          foodProd: 0, woodProd: 1, stoneProd: 0, goldProd: 1 },
   miner:      { label: "Bergmann",            foodProd: 0, woodProd: 0, stoneProd: 2, goldProd: 0 },
+  stonemason: { label: "Steinmetz",           foodProd: 0, woodProd: 0, stoneProd: 3, goldProd: 0 },
+  blacksmith: { label: "Schmied",             foodProd: 0, woodProd: 0, stoneProd: 1, goldProd: 2 },
+  goldsmith:  { label: "Feinschmied",         foodProd: 0, woodProd: 0, stoneProd: 0, goldProd: 3 },
+  jeweler:    { label: "Schmuckhandwerker",   foodProd: 0, woodProd: 0, stoneProd: 0, goldProd: 3 },
+  brewer:     { label: "Braumeister",         foodProd: -1, woodProd: 0, stoneProd: 0, goldProd: 3 },
   merchant:   { label: "Händler",             foodProd: 0, woodProd: 0, stoneProd: 0, goldProd: 2 },
   guard:      { label: "Wächter",             foodProd: 0, woodProd: 0, stoneProd: 0, goldProd: 0 },
   builder:    { label: "Baumeister",          foodProd: 0, woodProd: 0, stoneProd: 0, goldProd: 0 },
@@ -76,6 +82,16 @@ export const BUILDING_TYPES = {
     workerWeeksRequired: 3,
     cost: { food: 0, wood: 8, stone: 4, gold: 0 },
     capacityBonus: 4,
+    householdSlots: 4,
+    productionBonus: { food: 0, wood: 0, stone: 0, gold: 0 }
+  },
+  longhouse: {
+    label: "Langhaus",
+    description: "Großes Familienhaus mit hoher Bewohnerkapazität.",
+    workerWeeksRequired: 6,
+    cost: { food: 0, wood: 16, stone: 8, gold: 5 },
+    capacityBonus: 8,
+    householdSlots: 8,
     productionBonus: { food: 0, wood: 0, stone: 0, gold: 0 }
   },
   tavern: {
@@ -110,6 +126,72 @@ export const BUILDING_TYPES = {
     cost: { food: 0, wood: 2, stone: 6, gold: 0 },
     capacityBonus: 2,
     productionBonus: { food: 0, wood: 0, stone: 0, gold: 0 }
+  },
+  smithy: {
+    label: "Schmiede",
+    description: "Werkstatt für Schmiede und Feinschmiede.",
+    workerWeeksRequired: 7,
+    cost: { food: 0, wood: 10, stone: 12, gold: 8 },
+    capacityBonus: 0,
+    productionBonus: { food: 0, wood: 0, stone: 0, gold: 0 },
+    maxWorkers: 3,
+    allowedProfessions: ["blacksmith", "goldsmith"],
+    staffPerWorkerBonus: { food: 0, wood: 0, stone: 1, gold: 2 }
+  },
+  stonemason_yard: {
+    label: "Steinmetzplatz",
+    description: "Verarbeitet Rohstein effizienter durch spezialisierte Handwerker.",
+    workerWeeksRequired: 5,
+    cost: { food: 0, wood: 6, stone: 10, gold: 4 },
+    capacityBonus: 0,
+    productionBonus: { food: 0, wood: 0, stone: 1, gold: 0 },
+    maxWorkers: 3,
+    allowedProfessions: ["stonemason", "miner"],
+    staffPerWorkerBonus: { food: 0, wood: 0, stone: 1, gold: 1 }
+  },
+  carpentry: {
+    label: "Zimmerei",
+    description: "Ausbau für Holzverarbeitung und Bauplanung.",
+    workerWeeksRequired: 5,
+    cost: { food: 0, wood: 14, stone: 4, gold: 3 },
+    capacityBonus: 0,
+    productionBonus: { food: 0, wood: 1, stone: 0, gold: 0 },
+    maxWorkers: 3,
+    allowedProfessions: ["carpenter", "builder", "lumberjack"],
+    staffPerWorkerBonus: { food: 0, wood: 2, stone: 0, gold: 1 }
+  },
+  brewery: {
+    label: "Brauerei",
+    description: "Verarbeitet Nahrung zu Handelsware und Stimmungsvorteilen.",
+    workerWeeksRequired: 6,
+    cost: { food: 8, wood: 8, stone: 6, gold: 6 },
+    capacityBonus: 0,
+    productionBonus: { food: -1, wood: 0, stone: 0, gold: 2 },
+    maxWorkers: 2,
+    allowedProfessions: ["brewer"],
+    staffPerWorkerBonus: { food: -1, wood: 0, stone: 0, gold: 3 }
+  },
+  marketplace: {
+    label: "Marktplatz",
+    description: "Stärkt Handel und Einnahmen durch Händler und Handwerker.",
+    workerWeeksRequired: 7,
+    cost: { food: 5, wood: 12, stone: 8, gold: 12 },
+    capacityBonus: 2,
+    productionBonus: { food: 0, wood: 0, stone: 0, gold: 4 },
+    maxWorkers: 4,
+    allowedProfessions: ["merchant", "goldsmith", "jeweler"],
+    staffPerWorkerBonus: { food: 0, wood: 0, stone: 0, gold: 2 }
+  },
+  jeweler_workshop: {
+    label: "Juwelierwerkstatt",
+    description: "Spezialwerkstatt für Schmuckhandwerker und Feinschmiede.",
+    workerWeeksRequired: 6,
+    cost: { food: 0, wood: 6, stone: 6, gold: 10 },
+    capacityBonus: 0,
+    productionBonus: { food: 0, wood: 0, stone: 0, gold: 3 },
+    maxWorkers: 2,
+    allowedProfessions: ["jeweler", "goldsmith"],
+    staffPerWorkerBonus: { food: 0, wood: 0, stone: 0, gold: 3 }
   }
 };
 

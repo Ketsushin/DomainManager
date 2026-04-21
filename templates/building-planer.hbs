@@ -47,6 +47,31 @@
         </div>
         <span class="dm-progress-label">Fertiggestellt</span>
       </div>
+
+      {{#if canAssignStaff}}
+      <div class="dm-building-staffing">
+        <p class="dm-hint">
+          Zugewiesenes Personal: <strong>{{assignedStaffCount}} / {{maxWorkers}}</strong><br>
+          Erlaubte Berufe: {{allowedProfessionLabels}}
+        </p>
+        {{#if assignableSettlers.length}}
+        <div class="dm-staff-grid">
+          {{#each assignableSettlers}}
+          <label class="dm-staff-option">
+            <input type="checkbox"
+                   class="building-staff-checkbox"
+                   data-building-id="{{../id}}"
+                   data-settler-id="{{id}}"
+                   {{#if selected}}checked{{/if}}>
+            <span>{{name}}</span>
+          </label>
+          {{/each}}
+        </div>
+        {{else}}
+        <p class="dm-empty">Keine passenden Siedler für dieses Berufsgebäude.</p>
+        {{/if}}
+      </div>
+      {{/if}}
     </div>
     {{/if}}
     {{/each}}
@@ -151,6 +176,7 @@
             <th>Gebäude</th>
             <th>AW</th>
             <th>Kapazität</th>
+            <th>Wohnplätze</th>
             <th>🍞</th>
             <th>🪵</th>
             <th>⛏️</th>
@@ -162,11 +188,12 @@
           <tr>
             <td><strong>{{label}}</strong><br><small>{{description}}</small></td>
             <td>{{workerWeeksRequired}}</td>
-            <td>–</td>
-            <td>–</td>
-            <td>–</td>
-            <td>–</td>
-            <td>–</td>
+            <td>{{capacityBonus}}</td>
+            <td>{{householdSlots}}</td>
+            <td>{{prodFood}}</td>
+            <td>{{prodWood}}</td>
+            <td>{{prodStone}}</td>
+            <td>{{prodGold}}</td>
           </tr>
           {{/each}}
         </tbody>

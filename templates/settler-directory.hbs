@@ -6,9 +6,14 @@
   <div class="dm-panel-header">
     <h2 class="dm-panel-title"><i class="fas fa-users"></i> Siedler-Verzeichnis</h2>
     {{#if isGM}}
-    <button type="button" class="dm-btn dm-btn--primary btn-add-settler">
-      <i class="fas fa-user-plus"></i> Siedler hinzufügen
-    </button>
+    <div class="dm-header-actions">
+      <button type="button" class="dm-btn dm-btn--primary btn-add-settler">
+        <i class="fas fa-user-plus"></i> Siedler hinzufügen
+      </button>
+      <button type="button" class="dm-btn dm-btn--primary btn-create-pair">
+        <i class="fas fa-heart"></i> Paar bilden
+      </button>
+    </div>
     {{/if}}
   </div>
 
@@ -26,6 +31,7 @@
           <th>Geschlecht</th>
           <th>Status</th>
           <th>Beruf</th>
+          <th>Familie</th>
           <th>Effizienz</th>
           {{#if isGM}}<th>Aktionen</th>{{/if}}
         </tr>
@@ -43,6 +49,10 @@
           </td>
           <td>{{professionLabel}}</td>
           <td>
+            <div><strong>Partner:</strong> {{partnerName}}</div>
+            <div><strong>Haus:</strong> {{houseLabel}}</div>
+          </td>
+          <td>
             <span class="dm-efficiency" title="Arbeitseffizienz">{{efficiencyPct}} %</span>
           </td>
           {{#if ../isGM}}
@@ -52,6 +62,18 @@
                     data-id="{{id}}"
                     title="Bearbeiten">
               <i class="fas fa-edit"></i>
+            </button>
+            <button type="button"
+                class="dm-btn dm-btn--small dm-btn--ghost btn-assign-house"
+                data-id="{{id}}"
+                title="Wohnhaus zuweisen">
+              <i class="fas fa-home"></i>
+            </button>
+            <button type="button"
+                class="dm-btn dm-btn--small dm-btn--ghost btn-break-pair"
+                data-id="{{id}}"
+                title="Paar trennen">
+              <i class="fas fa-heart-broken"></i>
             </button>
             <button type="button"
                     class="dm-btn dm-btn--small dm-btn--danger btn-delete-settler"
@@ -64,7 +86,7 @@
         </tr>
         {{#if notes}}
         <tr class="dm-settler-notes-row">
-          <td colspan="{{#if ../isGM}}7{{else}}6{{/if}}" class="dm-settler-notes">
+          <td colspan="{{#if ../isGM}}8{{else}}7{{/if}}" class="dm-settler-notes">
             <i class="fas fa-comment-alt"></i> {{notes}}
           </td>
         </tr>
@@ -107,7 +129,7 @@
           {{#each professions}}
           <tr>
             <td>{{label}}</td>
-            <td>–</td><td>–</td><td>–</td><td>–</td>
+            <td>{{foodProd}}</td><td>{{woodProd}}</td><td>{{stoneProd}}</td><td>{{goldProd}}</td>
           </tr>
           {{/each}}
         </tbody>

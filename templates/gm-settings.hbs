@@ -115,6 +115,31 @@
     </button>
   </fieldset>
 
+  <fieldset class="dm-fieldset">
+    <legend>Aufnahmeprüfung für neue Leute</legend>
+    <p class="dm-hint">
+      Prüft, ob die Siedlung bei aktueller Versorgungslage weitere Personen aufnehmen kann.
+    </p>
+
+    <div class="form-group">
+      <label for="dm-intakeCheckInput">Anzahl neu ankommender Personen</label>
+      <div class="dm-input-row">
+        <input type="number" id="dm-intakeCheckInput" name="intakeCheckInput" min="0" value="{{intakeInput}}">
+        <button type="button" class="dm-btn dm-btn--primary btn-check-intake">
+          <i class="fas fa-search"></i> Prüfen
+        </button>
+      </div>
+    </div>
+
+    <div class="dm-intake-result {{#if intakeCheck.canTakeAll}}dm-intake-result--ok{{else}}dm-intake-result--warn{{/if}}">
+      <div><strong>Ergebnis:</strong> {{#if intakeCheck.canTakeAll}}Aufnahme möglich{{else}}Aufnahme kritisch / nicht vollständig möglich{{/if}}</div>
+      <div>Bevölkerung danach: {{intakeCheck.projectedPopulation}} / {{intakeCheck.capacity}}</div>
+      <div>Wohnplätze: {{intakeCheck.projectedPopulation}} / {{intakeCheck.housingSlots}}</div>
+      <div>Netto-Nahrung pro Woche: {{intakeCheck.projectedNetFood}}</div>
+      <div>Nahrung nach 1 Woche: {{intakeCheck.projectedFoodAfterWeek}}</div>
+    </div>
+  </fieldset>
+
   {{!-- Aktuelle Werte / Status --}}
   <fieldset class="dm-fieldset">
     <legend>Aktueller Zustand</legend>

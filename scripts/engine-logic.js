@@ -16,6 +16,10 @@ import {
 
 export class EngineLogic {
 
+  static _toMapById(collection) {
+    return new Map((collection ?? []).map(entry => [entry.id, entry]));
+  }
+
   // ---------------------------------------------------------------------------
   // Siedler-Hilfsfunktionen
   // ---------------------------------------------------------------------------
@@ -71,6 +75,43 @@ export class EngineLogic {
     return settlers.length < EngineLogic.calculateCapacity(state);
   }
 
+  static calculateHousingSlots(state) {
+    const completedBuildings = (state.buildings ?? []).filter(b => b.status === "complete");
+    let slots = 0;
+    for (const building of completedBuildings) {
+      const type = BUILDING_TYPES[building.typeKey];
+      slots += type?.householdSlots ?? 0;
+    }
+    return slots;
+  }
+
+  static evaluateIntake(settlers, state, incomingCount) {
+    const incoming = Math.max(0, Number(incomingCount) || 0);
+    const capacity = EngineLogic.calculateCapacity(state);
+    const housingSlots = EngineLogic.calculateHousingSlots(state);
+    const projectedPopulation = settlers.length + incoming;
+    const weekly = EngineLogic.calculateWeeklyProduction(settlers, state);
+    const projectedConsumption = projectedPopulation * FOOD_CONSUMPTION_PER_SETTLER;
+    const projectedNetFood = weekly.production.food - projectedConsumption;
+    const projectedFoodAfterWeek = state.resources.food + projectedNetFood;
+
+    return {
+      incoming,
+      projectedPopulation,
+      capacity,
+      housingSlots,
+      fitsCapacity: projectedPopulation <= capacity,
+      fitsHousing: housingSlots === 0 ? true : projectedPopulation <= housingSlots,
+      projectedNetFood,
+      projectedFoodAfterWeek,
+      fitsFood: projectedFoodAfterWeek >= 0,
+      canTakeAll:
+        projectedPopulation <= capacity &&
+        (housingSlots === 0 ? true : projectedPopulation <= housingSlots) &&
+        projectedFoodAfterWeek >= 0
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // Wochen-Produktion
   // ---------------------------------------------------------------------------
@@ -86,6 +127,7 @@ export class EngineLogic {
   static calculateWeeklyProduction(settlers, state) {
     const season    = SEASONS[state.season] ?? SEASONS.spring;
     const completed = (state.buildings ?? []).filter(b => b.status === "complete");
+    const settlerMap = EngineLogic._toMapById(settlers);
 
     const production = { food: 0, wood: 0, stone: 0, gold: 0 };
 
@@ -114,6 +156,22 @@ export class EngineLogic {
       production.wood  += type.productionBonus.wood  ?? 0;
       production.stone += type.productionBonus.stone ?? 0;
       production.gold  += type.productionBonus.gold  ?? 0;
+
+      if (type.staffPerWorkerBonus && Array.isArray(building.assignedSettlerIds)) {
+        let validWorkers = 0;
+        const maxWorkers = type.maxWorkers ?? Infinity;
+        for (const settlerId of building.assignedSettlerIds.slice(0, maxWorkers)) {
+          const settler = settlerMap.get(settlerId);
+          if (!settler) continue;
+          if (type.allowedProfessions?.length && !type.allowedProfessions.includes(settler.profession)) continue;
+          if (EngineLogic.getEfficiency(settler) <= 0) continue;
+          validWorkers += 1;
+        }
+        production.food  += (type.staffPerWorkerBonus.food ?? 0) * validWorkers;
+        production.wood  += (type.staffPerWorkerBonus.wood ?? 0) * validWorkers;
+        production.stone += (type.staffPerWorkerBonus.stone ?? 0) * validWorkers;
+        production.gold  += (type.staffPerWorkerBonus.gold ?? 0) * validWorkers;
+      }
     }
 
     const consumption = settlers.length * FOOD_CONSUMPTION_PER_SETTLER;
@@ -235,25 +293,51 @@ export class EngineLogic {
       surviving.push(settler);
     }
 
-    // Geburts-Check
+    // Bestehende Beziehungen auf überlebende Siedler bereinigen
+    const survivorIds = new Set(surviving.map(s => s.id));
+    const normalized = surviving.map(settler => {
+      if (!settler.partnerId) return settler;
+      if (!survivorIds.has(settler.partnerId)) {
+        return { ...settler, partnerId: null };
+      }
+      return settler;
+    });
+
+    // Geburts-Check (nur über Paare)
     const capacity     = EngineLogic.calculateCapacity(state);
-    const hasCapacity  = surviving.length < capacity;
-    const hasFoodStock = state.resources.food >= surviving.length * 4;
-    const fertileAdults = surviving.filter(s => {
+    const hasCapacity  = normalized.length < capacity;
+    const hasFoodStock = state.resources.food >= normalized.length * 4;
+    const fertileAdults = normalized.filter(s => {
       const status = EngineLogic.getEffectiveStatus(s);
       return status === "active" && s.age >= AGE_THRESHOLDS.childMax && s.age <= 45;
     });
 
-    if (hasCapacity && hasFoodStock && fertileAdults.length >= 2) {
-      const birthChance = Math.min(40, fertileAdults.length * 5);
-      const birthRoll   = Math.floor(Math.random() * 100) + 1;
+    const fertileMap = EngineLogic._toMapById(fertileAdults);
+    const couples = [];
+    const seenPairKeys = new Set();
+    for (const settler of fertileAdults) {
+      if (!settler.partnerId) continue;
+      const partner = fertileMap.get(settler.partnerId);
+      if (!partner || partner.partnerId !== settler.id) continue;
+      const pairKey = [settler.id, partner.id].sort().join("::");
+      if (seenPairKeys.has(pairKey)) continue;
+      seenPairKeys.add(pairKey);
+      couples.push([settler, partner]);
+    }
 
-      if (birthRoll <= birthChance) {
-        const shuffled = [...fertileAdults].sort(() => Math.random() - 0.5);
-        const parentA  = shuffled[0];
-        const parentB  = shuffled[1];
+    const newSettlers = [...normalized];
+    const housingSlots = EngineLogic.calculateHousingSlots(state);
+
+    if (hasCapacity && hasFoodStock && couples.length > 0) {
+      for (const [parentA, parentB] of couples) {
+        if (newSettlers.length >= capacity) break;
+        const birthChance = 35;
+        const birthRoll = Math.floor(Math.random() * 100) + 1;
+        if (birthRoll > birthChance) continue;
+
         const isFemale = Math.random() < 0.5;
-
+        const hasHousing = housingSlots === 0 || newSettlers.length < housingSlots;
+        const assignedHouseId = parentA.houseId && hasHousing ? parentA.houseId : null;
         const newborn = {
           id:         foundry.utils.randomID(),
           name:       `Kind von ${parentA.name}`,
@@ -261,22 +345,29 @@ export class EngineLogic {
           gender:     isFemale ? "female" : "male",
           status:     "child",
           profession: "none",
+          partnerId:  null,
+          houseId:    assignedHouseId,
           notes:      `Geboren in Jahr ${state.year + 1}.`
         };
-        surviving.push(newborn);
+        newSettlers.push(newborn);
         messages.push(
           `🍼 ${parentA.name} und ${parentB.name} haben ${isFemale ? "eine Tochter" : "einen Sohn"} bekommen! ` +
           `(Würfel: ${birthRoll} ≤ ${birthChance}%)`
         );
       }
+      if (!messages.some(msg => msg.includes("haben"))) {
+        messages.push("ℹ️ Dieses Jahr gab es trotz bestehender Paare keine Geburten.");
+      }
     } else if (!hasCapacity) {
       messages.push("ℹ️ Kein Bevölkerungswachstum – Versorgungslimit erreicht.");
     } else if (!hasFoodStock) {
       messages.push("ℹ️ Kein Bevölkerungswachstum – zu wenig Nahrungsreserven.");
+    } else if (couples.length === 0) {
+      messages.push("ℹ️ Kein Bevölkerungswachstum – keine registrierten Paare vorhanden.");
     }
 
     messages.push(
-      `🎆 Jahr ${state.year} abgeschlossen. Siedler: ${surviving.length}/${capacity}.`
+      `🎆 Jahr ${state.year} abgeschlossen. Siedler: ${newSettlers.length}/${capacity}.`
     );
 
     const newState = {
@@ -285,6 +376,6 @@ export class EngineLogic {
       year: state.year + 1
     };
 
-    return { newState, newSettlers: surviving, messages };
+    return { newState, newSettlers, messages };
   }
 }

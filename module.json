@@ -2,7 +2,7 @@
   "id": "domain-manager",
   "title": "Domain Manager",
   "description": "Verwalte deine Domäne in FoundryVTT – Siedler, Ressourcen, Gebäude und manuelle Zeitsteuerung für Pen-&-Paper-Kampagnen.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "compatibility": {
     "minimum": "11",
     "verified": "12",
@@ -21,8 +21,13 @@
     "styles/domain-manager.css"
   ],
   "languages": [],
+  "relationships": {
+    "systems": [],
+    "requires": [],
+    "recommends": []
+  },
   "flags": {},
   "url": "https://github.com/Ketsushin/DomainManager",
   "manifest": "https://raw.githubusercontent.com/Ketsushin/DomainManager/main/module.json",
-  "download": "https://github.com/Ketsushin/DomainManager/releases/download/v1.0.0/domain-manager-v1.0.0.zip"
+  "download": "https://github.com/Ketsushin/DomainManager/releases/download/v1.1.0/domain-manager-v1.1.0.zip"
 }
